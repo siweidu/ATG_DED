@@ -1,0 +1,59 @@
+;****** AUTO TOOLPATH GENERATION **********************************
+;
+;***** DEFINITIONS *************************************************
+N110 DEF REAL POWER           = 600   ; LASER POWER, W ; 45678
+N100 DEF REAL VELOCITY        = 1000   ; TRAVEL SPEED, mm/min; 56/789
+N160 DEF REAL SPOTSIZE        = 1.0   ; SET LASER SPOT SIZE, mm
+N170 DEF REAL TRACKSIZE       = 1.00   ; TRACK SIZE, mm
+N320 DEF REAL LAYERHEIGHT     = 0.5   ; LAYER HEIGHT, mm
+N150 DEF INT  CHARCURVE       = 1      ; LASER CHAR. CURVE, 1->400um, 2->100um
+N210 DEF REAL OFFSET          = 0.5    ; 0.4 -> 60% OVERLAP
+N270 DEF REAL PAUSE           = 0     ; PAUSE, sec
+
+;POWDER
+N190 DEF INT  HOPPER          = 2      ;hopper#
+N180 DEF REAL DiskRPM         = 3.00   ;hopper disc speed, rpm
+N200 DEF REAL CARRIERGAS      = 4      ;lpm carrier gas pressure 5
+N140 DEF REAL NOZZLEGAS       = 9     ; NOZZLE GAS, lpm
+;PARAMETERS
+N120 DEF REAL SetPower        = 0      ; Watt
+N130 DEF INT  PowerValue_G820 = 0      ; LASER POWER CONTROL
+
+
+;
+N350 TC_LMD_FOCUSLINE_DATA(CHARCURVE,SPOTSIZE)
+N360 TC_LMD_NOZZLE_GAS(NOZZLEGAS)
+N390 TC_LMD_POWDER(HOPPER,DiskRPM,CARRIERGAS)
+;
+N420 SetPower = POWER
+N430 PowerValue_G820 = ROUND((SetPower/ TG_LTT_IDATA[5])*10000)
+;
+N440 ;********** Definition LPC *************************************
+N450 ;       Point   Channel Voltage                       Function
+N460 G820   S0=1    S1=1    H10=0                          H40 = FIX
+N470 G820   S0=2    S1=1    H10=PowerValue_G820            H40 = FIX
+N480 ;
+;*************** End of Definitions *********************************
+;
+;*************** Calculator *****************************************
+;
+;*************** Operation ******************************************
+N550 TC_RESET
+N560 TC_LASER_REQUEST(1)
+N570 SET_G54(2648.660, 572.189, 294.620,0,0,0,0)        ; SET 0 POSITION
+
+N590 G500
+N600 G00 Z=500.00 B=0 C=0
+N610 F=5000
+N620 G54
+N640 G00 X=0 Y=0 B=0 C=0 B21=0 A1=0  
+N650 G00 Z=50    
+N660 G01 Z=0 F=2000;  
+N670 M00
+N680 TC_ACL(1)
+N690 TC_LASER_LMD_ON
+N700 F = VELOCITY
+N710 TC_TIMER(1,1,"START BUILD")
+
+
+;***** TOOLPATH *****
